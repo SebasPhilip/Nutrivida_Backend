@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 @RestController
-@RequestMapping("/api/planes")
+@RequestMapping("/api/v1/planes")
 @Tag(name = "Planes", description = "Operaciones CRUD sobre planes")
 public class PlanesController {
 @Autowired
