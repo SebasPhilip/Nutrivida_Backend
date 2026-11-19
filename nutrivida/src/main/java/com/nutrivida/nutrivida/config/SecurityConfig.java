@@ -29,6 +29,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
 @Configuration
 @SecurityScheme(name = "bearerAuth", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
@@ -44,9 +46,11 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
     .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
     .authorizeHttpRequests(auth -> auth
-    .requestMatchers("/api/planesjwt/**", "/api/planes/**", "/api/productosjwt/**", "/api/productos/**").authenticated()
+    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+    .requestMatchers("/api/planesjwt/**", "/api/planes/**", "/api/productosjwt/**", "/api/productos/**").hasAnyRole("USER", "ADMIN")
     .anyRequest().permitAll())
-    .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+    .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> 
+    jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
     return http.build();
 }
 
@@ -97,5 +101,14 @@ public AuthenticationManager authenticationManager(UserDetailsService userDetail
     provider.setPasswordEncoder(passwordEncoder);
     return new ProviderManager(provider);
 
+}
+@Bean
+public JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
+    converter.setAuthoritiesClaimName("roles"); 
+    converter.setAuthorityPrefix("ROLE_"); 
+    JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+    jwtConverter.setJwtGrantedAuthoritiesConverter(converter);
+    return jwtConverter;
 }
 }
